@@ -6,7 +6,7 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "setup": "npm install --prefix server && npm install --prefix app",
+    "setup": "npm ci --prefix server && npm ci --prefix app",
     "play": "node scripts/play.mjs",
     "play:wifi": "node scripts/play.mjs --wifi",
     "test": "npm test --prefix server"

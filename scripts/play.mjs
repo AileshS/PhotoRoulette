@@ -5,6 +5,11 @@
 //
 //   npm run play        phones can be on any network (Expo tunnel)
 //   npm run play:wifi   phones on the same Wi-Fi as this computer (faster)
+//
+// Tunnel mode uses Expo's WebSocket tunnel (@expo/ws-tunnel) rather than
+// ngrok. It's plain JavaScript over HTTPS, so there's no ngrok.exe for
+// antivirus to quarantine and it works on ARM PCs too. Expo only exposes it
+// through EXPO_FORCE_WEBCONTAINER_ENV, and it only tunnels port 8081.
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,12 +51,16 @@ console.log(
     : '\n🌍 Tunnel mode: phones can be on any network. Give the tunnel a few seconds to connect.\n',
 );
 
-const expo = spawn('npx', ['expo', 'start', ...(wifi ? [] : ['--tunnel'])], {
-  cwd: join(root, 'app'),
-  env: { ...process.env, GAME_SERVER_PORT: String(gamePort) },
-  stdio: 'inherit',
-  shell: process.platform === 'win32',
-});
+const expoArgs = ['expo', 'start', ...(wifi ? ['--lan'] : ['--tunnel', '--port', '8081'])];
+const expoEnv = { ...process.env, GAME_SERVER_PORT: String(gamePort) };
+if (!wifi) expoEnv.EXPO_FORCE_WEBCONTAINER_ENV = '1';
+
+// Windows needs a shell to find npx.cmd; pass one command string so Node
+// doesn't warn about unescaped arguments (DEP0190).
+const expo =
+  process.platform === 'win32'
+    ? spawn(`npx ${expoArgs.join(' ')}`, { cwd: join(root, 'app'), env: expoEnv, stdio: 'inherit', shell: true })
+    : spawn('npx', expoArgs, { cwd: join(root, 'app'), env: expoEnv, stdio: 'inherit' });
 
 const stop = () => {
   server.kill();

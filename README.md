@@ -96,20 +96,35 @@ You need one computer (Mac, Windows or Linux) to run the game while you play. Fr
 
 ### How the connection works
 
-`npm run play` uses an Expo **tunnel**: the QR code points at a public address that forwards to your computer, so
-phones don't need to be on your Wi-Fi and firewalls don't get in the way. The app's game traffic rides along on the
-same address (Expo's dev server forwards it to the game server; see `app/metro.config.js`).
+`npm run play` uses an Expo **tunnel**: the QR code points at a public address (something like
+`xxxx.boltexpo.dev`) that forwards to your computer, so phones don't need to be on your Wi-Fi and firewalls don't get
+in the way. The app's game traffic rides along on the same address (Expo's dev server forwards it to the game server;
+see `app/metro.config.js`). The address stays the same between game nights on the same computer.
+
+This uses Expo's WebSocket tunnel (`@expo/ws-tunnel`) rather than ngrok, so there's no `ngrok.exe` for antivirus to
+quarantine and it works on ARM PCs too. Expo built that tunnel for browser-based coding tools and only switches it on
+through the `EXPO_FORCE_WEBCONTAINER_ENV` setting, which `npm run play` sets for you. If Expo ever changes it,
+`npm run play:wifi` still works with everyone on one Wi-Fi.
 
 If everyone is on the same Wi-Fi as the computer, `npm run play:wifi` skips the tunnel and is a bit faster.
 
 ### Troubleshooting
 
+- **`git pull` says your local changes to `package-lock.json` would be overwritten**: an older `npm install` rewrote
+  it. Throw that copy away with `git checkout -- app/package-lock.json` (or `server/…`), then `git pull` again.
+  `npm run setup` uses `npm ci`, which never changes these files.
 - **Stuck on "Opening project…"**: the phone can't reach your computer. Use `npm run play` (tunnel mode) rather than
   `play:wifi`, and wait for the QR code to appear before scanning.
 - **"Project is incompatible with this version of Expo Go"**: Expo Go on the phone runs a different SDK than this
   project (SDK 54). Update Expo Go from the App Store; if it now runs a newer SDK, the project needs upgrading to match.
-- **"ngrok tunnel took too long to connect"**: Expo's tunnel service is occasionally slow. Press `Ctrl+C` and run
-  `npm run play` again, or use `npm run play:wifi` with everyone on the same Wi-Fi.
+- **"Tunnel connection has been closed"** or the tunnel never connects: Expo's tunnel service had a hiccup. Press
+  `Ctrl+C` and run `npm run play` again (see [status.expo.dev](https://status.expo.dev)), or use
+  `npm run play:wifi` with everyone on the same Wi-Fi.
+- **"WS-tunnel only supports tunneling over port 8081"** or "port 8081 is in use": another Expo project is still
+  running. Close it (or restart the computer) and run `npm run play` again.
+- **Wi-Fi mode on Windows hangs on "Opening project…"**: Windows Firewall blocks phones when your Wi-Fi is set to a
+  **Public** network. Set it to **Private** (Settings → Network & internet → Wi-Fi → your network), and allow Node.js
+  through the firewall if Windows asks. Or just use `npm run play`.
 - **"Can't reach the game server"**: make sure the `npm run play` window is still open.
 - **Local network was denied** (Wi-Fi mode only): on the iPhone go to **Settings → Privacy & Security → Local Network**
   and turn on Expo Go.
@@ -120,10 +135,11 @@ If everyone is on the same Wi-Fi as the computer, `npm run play:wifi` skips the 
 ### Hosting the game server online
 
 To skip running the game server on your computer, deploy `server/` to any Node host with HTTPS, then start the app
-pointed at it (you still need `npx expo start --tunnel` in `app/` to serve the app to Expo Go):
+pointed at it (Expo still serves the app itself to Expo Go):
 
 ```sh
-EXPO_PUBLIC_SERVER_URL=https://your-server.example.com npx expo start --tunnel
+cd app
+EXPO_PUBLIC_SERVER_URL=https://your-server.example.com EXPO_FORCE_WEBCONTAINER_ENV=1 npx expo start --tunnel
 ```
 
 ### Other platforms
