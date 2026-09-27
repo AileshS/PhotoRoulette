@@ -1,0 +1,24 @@
+{
+  "name": "photo-roulette-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real-time game server for Photo Roulette",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/index.ts",
+    "dev": "node --watch src/index.ts",
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "socket.io-client": "^4.8.4",
+    "typescript": "^7.0.2"
+  }
+}
