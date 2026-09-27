@@ -8,7 +8,6 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
-  withSpring,
   withTiming,
   ZoomIn,
 } from 'react-native-reanimated';
@@ -38,7 +37,7 @@ export function FinalScreen({ room }: { room: RoomState }) {
   return (
     <Screen gradient={gradients.finished}>
       <Confetti />
-      <Animated.View entering={FadeInDown.springify()} style={{ paddingTop: 8, gap: 2 }}>
+      <Animated.View entering={FadeInDown.duration(300)} style={{ paddingTop: 8, gap: 2 }}>
         <Txt size={18} center color={colors.muted}>
           Game over!
         </Txt>
@@ -54,9 +53,7 @@ export function FinalScreen({ room }: { room: RoomState }) {
             <View key={place} style={styles.podiumCol}>
               {entry && (
                 <Animated.View
-                  entering={ZoomIn.delay(delay + 350)
-                    .springify()
-                    .damping(8)}
+                  entering={ZoomIn.delay(delay + 350).duration(300)}
                   style={{ alignItems: 'center', gap: 4 }}
                 >
                   {place === 1 && <Txt size={28}>👑</Txt>}
@@ -117,7 +114,7 @@ export function FinalScreen({ room }: { room: RoomState }) {
 function Step({ height, color, delay, place }: { height: number; color: string; delay: number; place: number }) {
   const h = useSharedValue(0);
   useEffect(() => {
-    h.set(withDelay(delay, withSpring(height, { damping: 14, stiffness: 120 })));
+    h.set(withDelay(delay, withTiming(height, { duration: 600, easing: Easing.out(Easing.cubic) })));
   }, [h, height, delay]);
   const style = useAnimatedStyle(() => ({ height: h.value }));
   return (

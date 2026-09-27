@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { haptic, Screen, Shake, Txt } from '../components/ui';
 import { game } from '../game/client';
 import { colors, gradients, radius } from '../theme';
@@ -33,7 +33,7 @@ export function MenuScreen({
 
   return (
     <Screen gradient={gradients.menu}>
-      <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
         <Txt size={18} color={colors.muted}>
           Hey there,
         </Txt>
@@ -107,15 +107,15 @@ function Tile({
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const text = dark ? colors.ink : colors.white;
   return (
-    <Animated.View entering={FadeInDown.delay(delay).springify()} style={[{ flex: 1, maxHeight: 250 }, style]}>
+    <Animated.View entering={FadeInDown.delay(delay).duration(300)} style={[{ flex: 1, maxHeight: 250 }, style]}>
       <Pressable
         testID={testID}
         accessibilityRole="button"
         accessibilityLabel={title}
         disabled={loading}
         style={{ flex: 1 }}
-        onPressIn={() => scale.set(withSpring(0.96))}
-        onPressOut={() => scale.set(withSpring(1))}
+        onPressIn={() => scale.set(withTiming(0.97, { duration: 90 }))}
+        onPressOut={() => scale.set(withTiming(1, { duration: 150 }))}
         onPress={() => {
           haptic();
           onPress();

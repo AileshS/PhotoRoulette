@@ -20,7 +20,6 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -164,8 +163,8 @@ export function Button({
         accessibilityRole="button"
         accessibilityLabel={title}
         disabled={inactive}
-        onPressIn={() => scale.set(withSpring(0.95, { damping: 15, stiffness: 400 }))}
-        onPressOut={() => scale.set(withSpring(1, { damping: 12, stiffness: 300 }))}
+        onPressIn={() => scale.set(withTiming(0.96, { duration: 90 }))}
+        onPressOut={() => scale.set(withTiming(1, { duration: 150 }))}
         onPress={() => {
           haptic();
           onPress?.();

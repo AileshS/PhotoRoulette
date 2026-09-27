@@ -24,7 +24,7 @@ export function CollectingScreen({ room, sharing }: { room: RoomState; sharing: 
     <Screen gradient={gradients.collecting}>
       <View style={styles.center}>
         <Wheel />
-        <Animated.View entering={FadeInDown.delay(150).springify()} style={{ gap: 6 }}>
+        <Animated.View entering={FadeInDown.delay(150).duration(300)} style={{ gap: 6 }}>
           <Txt size={32} weight="bold" center>
             Spinning the roulette…
           </Txt>
@@ -45,7 +45,7 @@ export function CollectingScreen({ room, sharing }: { room: RoomState; sharing: 
               {p.name}
             </Txt>
             {p.photosReady ? (
-              <Animated.View entering={ZoomIn.springify()}>
+              <Animated.View entering={ZoomIn.duration(300)}>
                 <Txt size={20}>✅</Txt>
               </Animated.View>
             ) : (
@@ -68,7 +68,7 @@ function Wheel() {
   const counter = useAnimatedStyle(() => ({ transform: [{ rotate: `${-spin.value * 360}deg` }] }));
   const R = 88;
   return (
-    <Animated.View entering={ZoomIn.springify().damping(10)} style={styles.wheelWrap}>
+    <Animated.View entering={ZoomIn.duration(300)} style={styles.wheelWrap}>
       <Animated.View style={[styles.wheel, wheel]}>
         {WHEEL.map((emoji, i) => {
           const a = (i / WHEEL.length) * Math.PI * 2;
