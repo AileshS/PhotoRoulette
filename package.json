@@ -1,0 +1,14 @@
+{
+  "name": "photo-roulette",
+  "private": true,
+  "description": "Guess whose camera roll the photo came from",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "setup": "npm install --prefix server && npm install --prefix app",
+    "play": "node scripts/play.mjs",
+    "play:wifi": "node scripts/play.mjs --wifi",
+    "test": "npm test --prefix server"
+  }
+}

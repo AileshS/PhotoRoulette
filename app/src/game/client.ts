@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { Ack, ClientToServer, RoomState, ServerToClient } from '../../../shared/protocol';
-import { SERVER_URL } from '../config';
+import { SERVER_URL, SERVER_VIA_DEV_PROXY } from '../config';
 import { pickRandomPhotos } from '../photos/photoSource';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
@@ -60,7 +60,9 @@ class GameClient {
   private ensureSocket() {
     if (this.socket) return this.socket;
     const socket: Socket<ServerToClient, ClientToServer> = io(SERVER_URL, {
-      transports: ['websocket'],
+      // WebSockets when talking to the game server directly; plain HTTP
+      // long-polling through the Expo dev server's proxy.
+      transports: SERVER_VIA_DEV_PROXY ? ['polling'] : ['polling', 'websocket'],
       autoConnect: false,
       reconnection: true,
       reconnectionDelay: 500,
