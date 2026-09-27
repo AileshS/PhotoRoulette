@@ -31,8 +31,8 @@ roll pops up, and you have **5 seconds** to guess whose it is. Fast, correct ans
 The 5-second clock starts when the photo actually appears on _your_ screen, so a slow download doesn't cost you time.
 The server caps this at the time it actually observed, so a modified client can't claim a faster answer.
 
-Photos are spread evenly across players, and the same person's photo never shows up twice in a row (when there's
-anyone else to pick).
+Each player's phone contributes an even share of the photos, and the order is completely random, so the same person
+can come up several rounds in a row.
 
 ## Project layout
 

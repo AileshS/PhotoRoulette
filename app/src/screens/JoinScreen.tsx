@@ -45,7 +45,7 @@ export function JoinScreen({ onBack }: { onBack: () => void }) {
         </Pressable>
 
         <View style={styles.center}>
-          <Animated.View entering={FadeInDown.springify()}>
+          <Animated.View entering={FadeInDown.duration(300)}>
             <Txt size={60} center>
               🔑
             </Txt>
@@ -65,11 +65,11 @@ export function JoinScreen({ onBack }: { onBack: () => void }) {
                 return (
                   <Animated.View
                     key={i}
-                    entering={ZoomIn.delay(100 + i * 70).springify()}
+                    entering={ZoomIn.delay(100 + i * 70).duration(300)}
                     style={[styles.box, active && styles.boxActive, ch && styles.boxFilled]}
                   >
                     {ch ? (
-                      <Animated.View key={ch + i} entering={ZoomIn.springify().damping(12)}>
+                      <Animated.View key={ch + i} entering={ZoomIn.duration(300)}>
                         <Txt size={38} weight="bold" color={colors.ink}>
                           {ch}
                         </Txt>

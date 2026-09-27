@@ -11,7 +11,6 @@ import Animated, {
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
   ZoomIn,
 } from 'react-native-reanimated';
@@ -133,7 +132,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
         <Animated.View style={[styles.bar, barStyle]} />
       </Animated.View>
 
-      <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.photoCard}>
+      <Animated.View entering={ZoomIn.duration(300)} style={styles.photoCard}>
         <Image source={{ uri }} style={StyleSheet.absoluteFill} blurRadius={24} resizeMode="cover" />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.25)' }]} />
         <Image
@@ -146,7 +145,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
         />
         {revealed && owner && (
           <Animated.View
-            entering={FadeInUp.springify().damping(12)}
+            entering={FadeInUp.duration(300)}
             style={[styles.photoBanner, { backgroundColor: owner.color }]}
           >
             <Txt size={20} weight="bold" center color={colors.ink}>
@@ -247,7 +246,7 @@ function RevealResult({ room }: { room: RoomState }) {
   }, []);
 
   return (
-    <Animated.View entering={ZoomIn.springify().damping(10)} testID="reveal-result">
+    <Animated.View entering={ZoomIn.duration(300)} testID="reveal-result">
       <LinearGradient colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.result}>
         <Txt size={24} weight="bold" center color={dark ? colors.ink : colors.white}>
           {title}
@@ -286,7 +285,7 @@ function Choice({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   useEffect(() => {
-    scale.set(withSpring(selected || state === 'owner' ? 1.04 : dimmed ? 0.96 : 1, { damping: 12 }));
+    scale.set(withTiming(selected || state === 'owner' ? 1.03 : dimmed ? 0.97 : 1, { duration: 200 }));
     opacity.set(withTiming(dimmed ? 0.4 : 1, { duration: 250 }));
   }, [selected, dimmed, state, scale, opacity]);
   const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -297,7 +296,7 @@ function Choice({
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(150 + index * 50).springify()}
+      entering={FadeInDown.delay(150 + index * 50).duration(300)}
       style={[{ width: layout.width }, animated]}
     >
       <Animated.View style={fade}>
@@ -306,8 +305,8 @@ function Choice({
           accessibilityRole="button"
           accessibilityLabel={name}
           disabled={disabled}
-          onPressIn={() => !disabled && scale.set(withSpring(0.94))}
-          onPressOut={() => !disabled && scale.set(withSpring(1))}
+          onPressIn={() => !disabled && scale.set(withTiming(0.96, { duration: 90 }))}
+          onPressOut={() => !disabled && scale.set(withTiming(1, { duration: 150 }))}
           onPress={onPress}
           style={[styles.choice, { height: layout.height, backgroundColor: color, borderColor: border }]}
         >
@@ -315,17 +314,17 @@ function Choice({
             {name}
           </Txt>
           {state === 'owner' && (
-            <Animated.View entering={ZoomIn.springify()} style={[styles.badge, { backgroundColor: colors.green }]}>
+            <Animated.View entering={ZoomIn.duration(300)} style={[styles.badge, { backgroundColor: colors.green }]}>
               <Txt size={14}>✓</Txt>
             </Animated.View>
           )}
           {state === 'wrong' && (
-            <Animated.View entering={ZoomIn.springify()} style={[styles.badge, { backgroundColor: colors.red }]}>
+            <Animated.View entering={ZoomIn.duration(300)} style={[styles.badge, { backgroundColor: colors.red }]}>
               <Txt size={14}>✕</Txt>
             </Animated.View>
           )}
           {selected && state === 'none' && (
-            <Animated.View entering={ZoomIn.springify()} style={[styles.badge, { backgroundColor: colors.ink }]}>
+            <Animated.View entering={ZoomIn.duration(300)} style={[styles.badge, { backgroundColor: colors.ink }]}>
               <Txt size={12}>🔒</Txt>
             </Animated.View>
           )}
@@ -336,7 +335,7 @@ function Choice({
           {guessers.map((g, i) => (
             <Animated.View
               key={g.name}
-              entering={ZoomIn.delay(250 + i * 80).springify()}
+              entering={ZoomIn.delay(250 + i * 80).duration(300)}
               style={{ marginLeft: i ? -6 : 0 }}
             >
               <Avatar name={g.name} color={g.color} size={22} />

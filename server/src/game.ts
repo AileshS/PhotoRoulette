@@ -92,39 +92,8 @@ export function distribute(total: number, ids: string[]): Map<string, number> {
   return out;
 }
 
-/** Orders photos randomly while avoiding the same owner twice in a row when possible. */
-export function orderPhotos<T extends { ownerId: string }>(photos: T[]): T[] {
-  const byOwner = new Map<string, T[]>();
-  for (const p of shuffle(photos)) {
-    const list = byOwner.get(p.ownerId) ?? [];
-    list.push(p);
-    byOwner.set(p.ownerId, list);
-  }
-  const out: T[] = [];
-  let last: string | null = null;
-  while (out.length < photos.length) {
-    const remaining = photos.length - out.length;
-    const owners = [...byOwner.entries()].filter(([, list]) => list.length > 0);
-    const others = owners.filter(([id]) => id !== last);
-    // An owner holding more than half of what's left must go now, or they'd
-    // be forced to repeat later.
-    const majority = others.find(([, list]) => list.length * 2 > remaining);
-    const pool = majority ? [majority] : others.length > 0 ? others : owners;
-    // Weight by how many photos an owner has left so nobody gets bunched at the end.
-    let pick = randomInt(pool.reduce((n, [, list]) => n + list.length, 0));
-    for (const [id, list] of pool) {
-      if (pick < list.length) {
-        out.push(list.pop()!);
-        last = id;
-        break;
-      }
-      pick -= list.length;
-    }
-  }
-  return out;
-}
-
-function shuffle<T>(items: T[]): T[] {
+/** Fisher–Yates shuffle: every order is equally likely. */
+export function shuffle<T>(items: T[]): T[] {
   const a = [...items];
   for (let i = a.length - 1; i > 0; i--) {
     const j = randomInt(i + 1);
@@ -527,7 +496,9 @@ export class GameServer {
       this.backToLobby(room, "Couldn't get any photos from anyone's camera roll. Check photo access and try again.");
       return;
     }
-    room.photos = orderPhotos(photos).slice(0, room.rounds);
+    // Each player contributed an even share, but the order is fully random:
+    // the same person can come up several rounds in a row.
+    room.photos = shuffle(photos).slice(0, room.rounds);
     for (const photo of room.photos) this.photoIndex.set(photo.id, photo);
     this.startRound(room, 0);
   }

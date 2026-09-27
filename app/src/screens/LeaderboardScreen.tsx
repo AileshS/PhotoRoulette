@@ -34,7 +34,7 @@ export function LeaderboardScreen({ room }: { room: RoomState }) {
 
   return (
     <Screen gradient={gradients.leaderboard}>
-      <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
         <Txt size={40} weight="bold" center>
           🏆 Leaderboard
         </Txt>
@@ -49,8 +49,8 @@ export function LeaderboardScreen({ room }: { room: RoomState }) {
           return (
             <Animated.View
               key={p.id}
-              entering={FadeInDown.delay(100 + index * 70).springify()}
-              layout={LinearTransition.springify().damping(15)}
+              entering={FadeInDown.delay(100 + index * 70).duration(300)}
+              layout={LinearTransition.duration(300)}
               style={[styles.row, you && styles.you, !p.connected && { opacity: 0.55 }]}
             >
               <View style={styles.rank}>
@@ -74,12 +74,7 @@ export function LeaderboardScreen({ room }: { room: RoomState }) {
                 )}
               </View>
               {p.lastGain > 0 && (
-                <Animated.View
-                  entering={ZoomIn.delay(400 + index * 70)
-                    .springify()
-                    .damping(9)}
-                  style={styles.gain}
-                >
+                <Animated.View entering={ZoomIn.delay(400 + index * 70).duration(300)} style={styles.gain}>
                   <Txt size={14} weight="bold" color={colors.ink}>
                     +{p.lastGain}
                   </Txt>

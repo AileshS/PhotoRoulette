@@ -1,18 +1,6 @@
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Linking, Platform, StyleSheet, TextInput, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  FadeOutUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-  ZoomIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { Button, Card, haptic, Screen, Shake, Txt } from '../components/ui';
 import { checkAccess, requestAccess, sourceSummary, USES_PICKER, type AccessStatus } from '../photos/photoSource';
 import { colors, fonts, gradients, radius } from '../theme';
@@ -76,7 +64,7 @@ export function OnboardingScreen({
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.hero}>
           <Polaroids />
-          <Animated.View entering={FadeInDown.delay(150).springify()}>
+          <Animated.View entering={FadeInDown.delay(150).duration(300)}>
             <Txt size={46} weight="bold" center style={styles.logo}>
               Photo
             </Txt>
@@ -91,7 +79,7 @@ export function OnboardingScreen({
 
         <View style={styles.bottom}>
           {step === 'photos' && (
-            <Animated.View key="photos" entering={FadeInUp.springify()} exiting={FadeOutUp.duration(200)}>
+            <Animated.View key="photos" entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(200)}>
               <Card style={{ gap: 10 }}>
                 <Txt size={22} weight="bold">
                   {USES_PICKER ? '📸  Pick your photos' : '📸  Your camera roll'}
@@ -130,7 +118,7 @@ export function OnboardingScreen({
           )}
 
           {step === 'name' && (
-            <Animated.View key="name" entering={FadeInUp.springify()}>
+            <Animated.View key="name" entering={FadeInUp.duration(300)}>
               <Card style={{ gap: 12 }}>
                 <Txt size={22} weight="bold">
                   👋 What should we call you?
@@ -205,25 +193,13 @@ function Polaroid({
   x: number;
   delay: number;
 }) {
-  const bob = useSharedValue(0);
-  useEffect(() => {
-    bob.set(
-      withDelay(
-        delay + 600,
-        withRepeat(withSequence(withTiming(1, { duration: 1400 }), withTiming(0, { duration: 1400 })), -1),
-      ),
-    );
-  }, [bob, delay]);
-  const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: x }, { translateY: -8 * bob.value }, { rotate: `${rotate + bob.value * 3}deg` }],
-  }));
   return (
-    <Animated.View entering={ZoomIn.delay(delay).springify().damping(10)} style={styles.polaroidSlot}>
-      <Animated.View style={[styles.polaroid, style]}>
+    <Animated.View entering={FadeIn.delay(delay).duration(400)} style={styles.polaroidSlot}>
+      <View style={[styles.polaroid, { transform: [{ translateX: x }, { rotate: `${rotate}deg` }] }]}>
         <View style={[styles.polaroidPhoto, { backgroundColor: color }]}>
           <Txt size={40}>{emoji}</Txt>
         </View>
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 }

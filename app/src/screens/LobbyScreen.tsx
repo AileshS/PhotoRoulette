@@ -68,7 +68,7 @@ export function LobbyScreen({ room }: { room: RoomState }) {
       </View>
 
       <ScrollView contentContainerStyle={{ gap: 18, paddingBottom: 12 }} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.springify()} style={{ alignItems: 'center', gap: 8 }}>
+        <Animated.View entering={FadeInDown.duration(300)} style={{ alignItems: 'center', gap: 8 }}>
           <Txt size={16} color={colors.muted}>
             Room code
           </Txt>
@@ -79,13 +79,7 @@ export function LobbyScreen({ room }: { room: RoomState }) {
           >
             <View style={styles.codeRow} testID="room-code">
               {room.code.split('').map((ch, i) => (
-                <Animated.View
-                  key={i}
-                  entering={ZoomIn.delay(120 + i * 80)
-                    .springify()
-                    .damping(9)}
-                  style={styles.codeTile}
-                >
+                <Animated.View key={i} entering={ZoomIn.delay(120 + i * 80).duration(300)} style={styles.codeTile}>
                   <Txt size={44} weight="bold" color={colors.ink}>
                     {ch}
                   </Txt>
@@ -114,9 +108,9 @@ export function LobbyScreen({ room }: { room: RoomState }) {
             {room.players.map((p) => (
               <Animated.View
                 key={p.id}
-                entering={ZoomIn.springify().damping(11)}
+                entering={ZoomIn.duration(300)}
                 exiting={ZoomOut.duration(200)}
-                layout={LinearTransition.springify()}
+                layout={LinearTransition.duration(300)}
                 style={[styles.player, !p.connected && { opacity: 0.45 }]}
               >
                 <View>
@@ -160,7 +154,7 @@ export function LobbyScreen({ room }: { room: RoomState }) {
             </Txt>
             <View style={styles.stepper}>
               <StepButton label="−" onPress={() => changeRounds(rounds - 1)} disabled={rounds <= MIN_ROUNDS} />
-              <Animated.View key={rounds} entering={ZoomIn.springify().damping(12)} style={{ minWidth: 90 }}>
+              <Animated.View key={rounds} entering={ZoomIn.duration(300)} style={{ minWidth: 90 }}>
                 <Txt size={52} weight="bold" center testID="rounds-value">
                   {rounds}
                 </Txt>

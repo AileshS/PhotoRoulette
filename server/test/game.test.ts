@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
 import type { ClientToServer, Phase, RoomState, ServerToClient } from '../../shared/protocol.ts';
-import { distribute, orderPhotos, scoreFor, type Timings } from '../src/game.ts';
+import { distribute, scoreFor, shuffle, type Timings } from '../src/game.ts';
 import { startServer, type Started } from '../src/server.ts';
 
 const FAST: Timings = {
@@ -105,17 +105,28 @@ describe('photo planning', () => {
     for (const n of d.values()) assert.ok(n === 3 || n === 4);
   });
 
-  it('avoids the same owner twice in a row when possible', () => {
-    for (let trial = 0; trial < 500; trial++) {
-      const photos = [
-        ...Array.from({ length: 4 }, () => ({ ownerId: 'a' })),
-        ...Array.from({ length: 3 }, () => ({ ownerId: 'b' })),
-        ...Array.from({ length: 3 }, () => ({ ownerId: 'c' })),
-      ];
-      const ordered = orderPhotos(photos);
-      assert.equal(ordered.length, 10);
-      for (let i = 1; i < ordered.length; i++) assert.notEqual(ordered[i].ownerId, ordered[i - 1].ownerId);
+  it('shuffles photos randomly instead of rotating through players', () => {
+    const photos = [...'aaaaabbbbb'].map((ownerId, i) => ({ ownerId, i }));
+    let alternating = 0;
+    let repeats = 0;
+    const firstOwners = { a: 0, b: 0 };
+    const trials = 400;
+    for (let t = 0; t < trials; t++) {
+      const order = shuffle(photos);
+      assert.deepEqual(
+        order.map((p) => p.i).sort((x, y) => x - y),
+        photos.map((p) => p.i),
+        'every photo is used exactly once',
+      );
+      const owners = order.map((p) => p.ownerId).join('');
+      if (owners === 'ababababab' || owners === 'bababababa') alternating++;
+      if (/aa|bb/.test(owners)) repeats++;
+      firstOwners[order[0].ownerId as 'a' | 'b']++;
     }
+    // A true shuffle alternates perfectly only ~0.8% of the time.
+    assert.ok(alternating < trials * 0.05, `alternated ${alternating}/${trials} times`);
+    assert.ok(repeats > trials * 0.9, 'the same person often comes up twice in a row');
+    assert.ok(firstOwners.a > trials * 0.3 && firstOwners.b > trials * 0.3, 'either player can go first');
   });
 });
 
