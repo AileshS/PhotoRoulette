@@ -120,6 +120,9 @@ If everyone is on the same Wi-Fi as the computer, `npm run play:wifi` skips the 
 - **`git pull` says your local changes to `package-lock.json` would be overwritten**: an older `npm install` rewrote
   it. Throw that copy away with `git checkout -- app/package-lock.json` (or `server/…`), then `git pull` again.
   `npm run setup` uses `npm ci`, which never changes these files.
+- **No QR code on the computer**: wait until the tunnel connects (the line `Waiting on http://….boltexpo.dev`); the QR
+  code prints right after it. You can also open Expo Go, tap **Enter URL manually**, and type the `exp://…` address
+  printed under the QR code.
 - **Stuck on "Opening project…"**: the phone can't reach your computer. Use `npm run play` (tunnel mode) rather than
   `play:wifi`, and wait for the QR code to appear before scanning.
 - **"Project is incompatible with this version of Expo Go"**: Expo Go and the project are on different SDK versions
