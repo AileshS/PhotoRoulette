@@ -9,12 +9,15 @@
 // Tunnel mode uses Expo's WebSocket tunnel (@expo/ws-tunnel) rather than
 // ngrok. It's plain JavaScript over HTTPS, so there's no ngrok.exe for
 // antivirus to quarantine and it works on ARM PCs too. Expo only exposes it
-// through EXPO_FORCE_WEBCONTAINER_ENV, and it only tunnels port 8081.
+// through EXPO_FORCE_WEBCONTAINER_ENV, and it only tunnels port 8081. That
+// setting also makes Expo skip its terminal QR code, so in tunnel mode this
+// script watches Expo's output for the tunnel address and prints the QR itself.
 //
 // Expo Go (SDK 57+) on a physical iPhone only opens a project when Expo Go and
 // this computer are signed in to the same Expo account, so we check the
 // computer's login first and offer to sign in.
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -94,7 +97,35 @@ const expoArgs = ['expo', 'start', ...(wifi ? ['--lan'] : ['--tunnel', '--port',
 const expoEnv = { ...process.env, GAME_SERVER_PORT: String(gamePort) };
 if (!wifi) expoEnv.EXPO_FORCE_WEBCONTAINER_ENV = '1';
 
-const expo = npx(expoArgs, { cwd: appDir, env: expoEnv, stdio: 'inherit' });
+// Wi-Fi mode: Expo's own interactive terminal (with its QR code) works as usual.
+// Tunnel mode: pass Expo's output through and add the QR code ourselves.
+const expo = npx(expoArgs, { cwd: appDir, env: expoEnv, stdio: wifi ? 'inherit' : ['inherit', 'pipe', 'pipe'] });
+if (!wifi) {
+  const qrcode = createRequire(join(appDir, 'package.json'))('qrcode-terminal');
+  let shown = false;
+  const watch = (stream, out) => {
+    let buffered = '';
+    stream.on('data', (chunk) => {
+      out.write(chunk);
+      if (shown) return;
+      buffered = (buffered + chunk.toString()).slice(-4000);
+      // Expo prints "Waiting on http://<something>.boltexpo.dev" once the tunnel is up.
+      const match = buffered.replace(/\x1b\[[0-9;]*m/g, '').match(/Waiting on https?:\/\/([^\s/]+)/);
+      if (!match) return;
+      shown = true;
+      printQr(`exp://${match[1]}`);
+    });
+  };
+  const printQr = (url) => {
+    qrcode.generate(url, { small: true }, (qr) => {
+      console.log(`\n${qr}`);
+      console.log('📱 Scan this with the iPhone Camera app to open the game in Expo Go.');
+      console.log(`   Or in Expo Go, tap "Enter URL manually" and type: ${url}\n`);
+    });
+  };
+  watch(expo.stdout, process.stdout);
+  watch(expo.stderr, process.stderr);
+}
 
 const stop = () => {
   server.kill();
