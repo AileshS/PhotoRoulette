@@ -8,11 +8,11 @@ Expo ships breaking changes every SDK release. APIs you remember are likely rena
 2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
 3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
 
-## Pinned to SDK 54 on purpose
+## Match the App Store Expo Go SDK
 
-The App Store build of Expo Go only runs SDK 54 projects, and friends play this game in Expo Go. Don't upgrade
-`expo` (or run `npx expo install expo@latest`) until the App Store Expo Go supports a newer SDK. `expo-media-library`
-on SDK 54 uses the older `getAssetsAsync` / `getAssetInfoAsync` API, so read the v54 docs, not the latest ones.
+Friends play this game in the App Store build of Expo Go, which runs exactly one SDK version (SDK 57 as of
+September 2026). Keep `expo` on that SDK. Only upgrade when the App Store Expo Go moves to a newer SDK, and check
+the App Store listing's version rather than Expo's docs, which have lagged behind.
 
 ## Commands
 

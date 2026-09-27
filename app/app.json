@@ -35,7 +35,8 @@
             "photo"
           ]
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "scheme": "photoroulette",
     "backgroundColor": "#1A0B4A"
