@@ -1,13 +1,13 @@
 // Native (iOS / Android) photo source: random picks from the real camera roll.
 // The web build uses photoSource.web.ts instead.
 import {
+  Asset,
+  AssetField,
   MediaType,
-  SortBy,
-  getAssetInfoAsync,
-  getAssetsAsync,
+  Query,
   getPermissionsAsync,
   requestPermissionsAsync,
-  type Asset,
+  type AssetMetadata,
   type PermissionResponse,
 } from 'expo-media-library';
 import { encodeForUpload, shuffle } from './encode';
@@ -45,20 +45,17 @@ export function sourceSummary(): string | null {
   return null;
 }
 
-async function loadPool(): Promise<Asset[]> {
-  const page = await getAssetsAsync({
-    mediaType: MediaType.photo,
-    sortBy: [[SortBy.creationTime, false]],
-    first: POOL_LIMIT,
-  });
-  return page.assets;
+async function loadPool(): Promise<AssetMetadata[]> {
+  return new Query()
+    .eq(AssetField.MEDIA_TYPE, MediaType.IMAGE)
+    .orderBy({ key: AssetField.CREATION_TIME, ascending: false })
+    .limit(POOL_LIMIT)
+    .exeForMetadata();
 }
 
-async function encodeAsset(asset: Asset): Promise<string> {
-  // On iOS `asset.uri` is a ph:// reference; localUri is a readable file
-  // (downloaded from iCloud first if the original isn't on the phone).
-  const info = await getAssetInfoAsync(asset);
-  return encodeForUpload(info.localUri ?? asset.uri, asset.width, asset.height);
+async function encodeAsset(meta: AssetMetadata): Promise<string> {
+  const uri = await new Asset(meta.id).getUri();
+  return encodeForUpload(uri, meta.width, meta.height);
 }
 
 /** Picks `count` random photos from the camera roll and returns them as base64 JPEGs. */

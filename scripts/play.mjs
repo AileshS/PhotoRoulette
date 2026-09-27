@@ -10,13 +10,52 @@
 // ngrok. It's plain JavaScript over HTTPS, so there's no ngrok.exe for
 // antivirus to quarantine and it works on ARM PCs too. Expo only exposes it
 // through EXPO_FORCE_WEBCONTAINER_ENV, and it only tunnels port 8081.
-import { spawn } from 'node:child_process';
+//
+// Expo Go (SDK 57+) on a physical iPhone only opens a project when Expo Go and
+// this computer are signed in to the same Expo account, so we check the
+// computer's login first and offer to sign in.
+import { spawn, spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const wifi = process.argv.includes('--wifi');
 const gamePort = Number(process.env.PORT) || 3001;
+const appDir = join(root, 'app');
+
+// Windows needs a shell to find npx.cmd; pass one command string so Node
+// doesn't warn about unescaped arguments (DEP0190).
+function npx(args, options) {
+  return process.platform === 'win32'
+    ? spawn(`npx ${args.join(' ')}`, { ...options, shell: true })
+    : spawn('npx', args, options);
+}
+
+function expoAccount() {
+  const options = { cwd: appDir, encoding: 'utf8' };
+  const res =
+    process.platform === 'win32'
+      ? spawnSync('npx expo whoami', { ...options, shell: true })
+      : spawnSync('npx', ['expo', 'whoami'], options);
+  const name = res.stdout?.trim().split('\n').pop();
+  return res.status === 0 && name ? name : null;
+}
+
+let account = expoAccount();
+if (!account) {
+  console.log(
+    '\n🔑 iPhones only open the game when Expo Go and this computer are signed in to the same Expo account.' +
+      '\n   Sign in below (create a free account at https://expo.dev/signup if you need one).\n',
+  );
+  const login = npx(['expo', 'login'], { cwd: appDir, stdio: 'inherit' });
+  await new Promise((resolve) => login.on('exit', resolve));
+  account = expoAccount();
+  if (!account) {
+    console.error('\n❌ Not signed in to Expo. Run `npm run play` again to retry.');
+    process.exit(1);
+  }
+}
+console.log(`\n👤 Signed in to Expo as "${account}". Every iPhone must sign in to Expo Go as "${account}" too.`);
 
 const server = spawn(process.execPath, ['src/index.ts'], {
   cwd: join(root, 'server'),
@@ -55,12 +94,7 @@ const expoArgs = ['expo', 'start', ...(wifi ? ['--lan'] : ['--tunnel', '--port',
 const expoEnv = { ...process.env, GAME_SERVER_PORT: String(gamePort) };
 if (!wifi) expoEnv.EXPO_FORCE_WEBCONTAINER_ENV = '1';
 
-// Windows needs a shell to find npx.cmd; pass one command string so Node
-// doesn't warn about unescaped arguments (DEP0190).
-const expo =
-  process.platform === 'win32'
-    ? spawn(`npx ${expoArgs.join(' ')}`, { cwd: join(root, 'app'), env: expoEnv, stdio: 'inherit', shell: true })
-    : spawn('npx', expoArgs, { cwd: join(root, 'app'), env: expoEnv, stdio: 'inherit' });
+const expo = npx(expoArgs, { cwd: appDir, env: expoEnv, stdio: 'inherit' });
 
 const stop = () => {
   server.kill();

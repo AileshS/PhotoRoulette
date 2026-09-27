@@ -46,9 +46,8 @@ shared/   TypeScript types for the client/server protocol
 
 You need one computer (Mac, Windows or Linux) to run the game while you play. Friends' iPhones can be on any network.
 
-> **Why SDK 54?** The App Store version of Expo Go only runs Expo SDK 54 projects (newer versions are
-> [stuck in App Store review](https://expo.dev/changelog/expo-go-and-app-store-may-2026)), so this app is pinned to
-> SDK 54. Don't upgrade Expo until the App Store Expo Go supports the newer SDK.
+> **SDK versions:** Expo Go runs exactly one Expo SDK version, and the project has to match it. The App Store Expo Go
+> is currently SDK 57, and so is this app. If Expo Go updates to a newer SDK, the project has to be upgraded to match.
 
 ### One-time setup
 
@@ -61,7 +60,14 @@ You need one computer (Mac, Windows or Linux) to run the game while you play. Fr
    npm run setup
    ```
 
-2. **On every iPhone**, install **Expo Go** from the App Store (free).
+2. **Make one Expo account for the game.** Expo Go on iPhone only opens a project when Expo Go and the computer are
+   signed in to the **same** Expo account ([Expo's docs](https://docs.expo.dev/troubleshooting/expo-go-sign-in-required/)).
+   So every player signs in with one shared account. Create a free one just for game nights at
+   [expo.dev/signup](https://expo.dev/signup), with a password you don't use anywhere else, since friends will know it.
+   `npm run play` asks the computer to sign in the first time.
+
+3. **On every iPhone**, install **Expo Go** from the App Store (free). Open it, tap the account icon in the top-right
+   corner, and sign in with the game account.
 
 ### Each time you play
 
@@ -71,8 +77,9 @@ You need one computer (Mac, Windows or Linux) to run the game while you play. Fr
    npm run play
    ```
 
-   This starts the game server and the app together, then shows a QR code once the tunnel connects (give it a few
-   seconds). Leave the window open while you play and press `Ctrl+C` when you're done.
+   The first time, it asks you to sign in to the game's Expo account. Then it starts the game server and the app
+   together and shows a QR code once the tunnel connects (give it a few seconds). Leave the window open while you play
+   and press `Ctrl+C` when you're done.
 
 2. **Open the app on each iPhone.** Point the regular **Camera** app at the QR code and tap the banner that appears.
    It opens in Expo Go. If iOS asks to let Expo Go find devices on your **local network**, tap **Allow**. The first
@@ -115,8 +122,12 @@ If everyone is on the same Wi-Fi as the computer, `npm run play:wifi` skips the 
   `npm run setup` uses `npm ci`, which never changes these files.
 - **Stuck on "Opening project…"**: the phone can't reach your computer. Use `npm run play` (tunnel mode) rather than
   `play:wifi`, and wait for the QR code to appear before scanning.
-- **"Project is incompatible with this version of Expo Go"**: Expo Go on the phone runs a different SDK than this
-  project (SDK 54). Update Expo Go from the App Store; if it now runs a newer SDK, the project needs upgrading to match.
+- **"Project is incompatible with this version of Expo Go"**: Expo Go and the project are on different SDK versions
+  (the message names both). Update Expo Go from the App Store. If Expo Go is now newer than the project (SDK 57), the
+  project needs upgrading to match.
+- **"You need to be signed in to Expo Go and Expo CLI"**, or **"these accounts need to match"**: sign in to Expo Go
+  (account icon, top right) with the same account `npm run play` printed ("Signed in to Expo as …"). To switch the
+  computer's account, run `npx expo logout` in the `app` folder, then `npm run play` again.
 - **"Tunnel connection has been closed"** or the tunnel never connects: Expo's tunnel service had a hiccup. Press
   `Ctrl+C` and run `npm run play` again (see [status.expo.dev](https://status.expo.dev)), or use
   `npm run play:wifi` with everyone on the same Wi-Fi.
