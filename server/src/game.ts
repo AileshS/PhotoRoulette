@@ -573,7 +573,6 @@ export class GameServer {
     if (room.phase !== 'question' || !round || p?.round !== round.index)
       return { ok: false, error: 'This round is over.' };
     if (!room.roster.includes(player.id)) return { ok: false, error: "You're not in this game." };
-    if (round.photo.ownerId === player.id) return { ok: false, error: "That's your photo!" };
     if (round.answers.has(player.id)) return { ok: false, error: 'You already answered.' };
     if (!room.roster.includes(p.guessId)) return { ok: false, error: 'Unknown player.' };
     const now = Date.now();
@@ -596,9 +595,7 @@ export class GameServer {
   private maybeEndQuestion(room: Room): boolean {
     const round = room.round;
     if (room.phase !== 'question' || !round) return false;
-    const waitingOn = room.roster.filter(
-      (id) => id !== round.photo.ownerId && room.players.get(id)?.socket && !round.answers.has(id),
-    );
+    const waitingOn = room.roster.filter((id) => room.players.get(id)?.socket && !round.answers.has(id));
     if (waitingOn.length > 0) return false;
     // Let the last tap register visually before flipping to the reveal.
     this.clearTimer(room);
@@ -681,7 +678,8 @@ export class GameServer {
       you: {
         id: viewer.id,
         isHost: viewer.id === room.hostId,
-        ownsCurrentPhoto: !!round && round.photo.ownerId === viewer.id,
+        // Owners guess too, so they only find out it was theirs at the reveal.
+        ownsCurrentPhoto: revealed && !!round && round.photo.ownerId === viewer.id,
         guessId: round?.answers.get(viewer.id)?.guessId ?? null,
       },
       notice: room.notice,

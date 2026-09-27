@@ -11,9 +11,9 @@ roll pops up, and you have **5 seconds** to guess whose it is. Fast, correct ans
 2. **Create or join.** Create a game to get a 4-letter room code, or join a friend's game with their code.
 3. **Lobby.** Everyone's avatar shows up live as they join. The host picks the number of rounds (1–30, with 5/10/15/20
    shortcuts) and starts the game once at least 2 players are in.
-4. **Rounds.** Each phone quietly picks random photos from its own camera roll. Each round shows one photo, and every
-   other player has 5 seconds to tap the name of the person they think it belongs to. The owner sees _"This one's
-   yours! Keep a straight face."_ and sits that round out.
+4. **Rounds.** Each phone quietly picks random photos from its own camera roll. Each round shows one photo, and
+   **everyone**, including the photo's owner, has 5 seconds to tap the name of the person they think it belongs to.
+   Nobody is told whose photo it is until the reveal, so owners have to recognise their own shots (and play it cool).
 5. **Reveal and leaderboard.** The owner is revealed along with who guessed what. Then the leaderboard re-sorts itself
    with the new scores.
 6. **Podium.** After the last round, a final podium with confetti. The host can hit **Play again** to return everyone to
@@ -42,41 +42,92 @@ server/   Node + Socket.IO game server (rooms, rounds, scoring, photo hosting)
 shared/   TypeScript types for the client/server protocol
 ```
 
-## Running it
+## Playing on iPhones
 
-You need Node 22.18+ (the server runs TypeScript directly with Node's built-in type stripping).
+You need one computer (Mac, Windows or Linux) to run the game, and every iPhone on the **same Wi-Fi network** as that
+computer.
 
-### 1. Start the game server
+### One-time setup
 
-```sh
-cd server
-npm install
-npm start            # listens on port 3001 (set PORT to change)
-```
+1. **On the computer**, install [Node.js](https://nodejs.org) 22.18 or newer, then download this repo and install its
+   dependencies:
 
-### 2. Start the app
+   ```sh
+   git clone https://github.com/AileshS/PhotoRoulette.git
+   cd PhotoRoulette
+   (cd server && npm install)
+   (cd app && npm install)
+   ```
 
-```sh
-cd app
-npm install
-npx expo start
-```
+2. **On every iPhone**, install **Expo Go** from the App Store (free).
 
-Scan the QR code with **Expo Go** on your phone. During development the app automatically connects to the game server
-on the same machine that serves the app (port 3001), so phones on the same Wi-Fi just work. To point at a deployed
-server instead:
+### Each time you play
+
+1. **Start the game server** on the computer, in its own terminal window, and leave it running:
+
+   ```sh
+   cd PhotoRoulette/server
+   npm start
+   ```
+
+   You should see `📸 Photo Roulette server listening on http://0.0.0.0:3001`.
+
+2. **Start the app** in a second terminal window:
+
+   ```sh
+   cd PhotoRoulette/app
+   npx expo start
+   ```
+
+   A QR code appears in the terminal.
+
+3. **Open the app on each iPhone.** Point the regular **Camera** app at the QR code and tap the banner that appears.
+   It opens in Expo Go. The first time, iOS asks to let Expo Go find devices on your **local network**. Tap **Allow**,
+   because the app can't reach the game without it.
+
+4. **Give photo access and a name.** Tap **Allow photo access**. Choose **Allow Full Access** so the game can pick from
+   your whole camera roll. **Limit Access** also works, but then only the photos you select can come up. Then type
+   your name and tap **Let's play**.
+
+5. **One person creates the game.** The host taps **Create game** and a 4-letter room code appears (tap it to copy).
+
+6. **Everyone else joins.** Tap **Join game** and type the code. Each player pops into the lobby as they join.
+
+7. **The host starts the game.** Pick the number of rounds (tap − / + or a 5 / 10 / 15 / 20 shortcut), then tap
+   **Start game**. It needs at least 2 players.
+
+8. **Play.** Each round a random photo appears. Tap whose you think it is within 5 seconds. Faster correct answers score
+   more. After the reveal and the leaderboard, the next photo comes up automatically.
+
+9. **Play again.** After the final podium, the host can tap **Play again** to go back to the lobby with the same group.
+
+### Troubleshooting
+
+- **"Can't reach the game server"**: make sure the server terminal is still running and every phone is on the same
+  Wi-Fi as the computer. Guest or public Wi-Fi often blocks phones from reaching each other, so use a home network or a
+  phone hotspot. On a Mac, if the firewall asks whether to allow incoming connections for `node`, click **Allow**.
+- **Local network was denied**: on the iPhone go to **Settings → Privacy & Security → Local Network** and turn on Expo
+  Go.
+- **Photo access was denied**: on the iPhone go to **Settings → Expo Go → Photos** and choose **Full Access**.
+- **A phone locks or switches apps mid-game**: just reopen Expo Go. The player rejoins the same game and keeps their
+  score.
+
+### Playing away from home
+
+Phones must be able to reach the game server. To play over the internet instead of one Wi-Fi network, deploy `server/`
+to any Node host with HTTPS, then start the app pointed at it:
 
 ```sh
 EXPO_PUBLIC_SERVER_URL=https://your-server.example.com npx expo start
 ```
 
-Every player needs the app and has to reach the same server.
+### Other platforms
 
-> **Android note:** Android restricts broad photo-library access. If the camera-roll prompt doesn't work in Expo Go on
-> your device, use a development build instead (`npx expo run:android` or `eas build --profile development`).
-
-**Web:** `npx expo start --web` also works. Browsers can't browse a camera roll, so on the web you pick a batch of
-photos once and the game draws randomly from those.
+- **Android:** the same steps work with Expo Go from the Play Store. Android restricts broad photo-library access, so
+  if the camera-roll prompt doesn't work in Expo Go, use a development build (`npx expo run:android` or
+  `eas build --profile development`).
+- **Web:** `npx expo start --web` also works. Browsers can't browse a camera roll, so on the web you pick a batch of
+  photos once and the game draws randomly from those.
 
 ## Privacy
 

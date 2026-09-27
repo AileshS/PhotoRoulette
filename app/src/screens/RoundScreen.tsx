@@ -27,7 +27,6 @@ const LOAD_FALLBACK_MS = 1500;
 export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffset: number }) {
   const round = room.round!;
   const revealed = room.phase === 'reveal';
-  const isOwner = room.you.ownsCurrentPhoto;
 
   const [localGuess, setMyGuess] = useState<string | null>(null);
   // After a reconnect the server remembers our answer even if we don't.
@@ -71,7 +70,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
     return () => clearInterval(id);
   }, [revealed, progress]);
 
-  const locked = revealed || isOwner || timeUp || myGuess !== null;
+  const locked = revealed || timeUp || myGuess !== null;
 
   const choose = async (id: string) => {
     if (locked || !clock.current) return;
@@ -104,7 +103,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
   const owner = round.choices.find((c) => c.id === round.ownerId);
   const layout = gridFor(round.choices.length);
   const answeredCount = round.answeredIds.length;
-  const canAnswerCount = round.choices.filter((c) => room.players.find((p) => p.id === c.id)?.connected).length - 1;
+  const canAnswerCount = round.choices.filter((c) => room.players.find((p) => p.id === c.id)?.connected).length;
 
   return (
     <Screen gradient={gradients.round}>
@@ -145,13 +144,6 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
           onLoad={startClock}
           onError={startClock}
         />
-        {isOwner && !revealed && (
-          <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.photoBanner}>
-            <Txt size={17} weight="bold" center color={colors.ink}>
-              {"🤫 This one's yours! Keep a straight face."}
-            </Txt>
-          </Animated.View>
-        )}
         {revealed && owner && (
           <Animated.View
             entering={FadeInUp.springify().damping(12)}
@@ -169,13 +161,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
           <RevealResult room={room} />
         ) : (
           <Txt size={22} weight="bold" center>
-            {isOwner
-              ? 'Watch them squirm…'
-              : myGuess
-                ? 'Locked in! 🔒'
-                : timeUp
-                  ? "⏰ Time's up!"
-                  : 'Whose photo is this?'}
+            {myGuess ? 'Locked in! 🔒' : timeUp ? "⏰ Time's up!" : 'Whose photo is this?'}
           </Txt>
         )}
       </View>
@@ -195,7 +181,7 @@ export function RoundScreen({ room, clockOffset }: { room: RoomState; clockOffse
               name={c.id === room.you.id ? `${c.name} (you)` : c.name}
               color={c.color}
               selected={myGuess === c.id}
-              dimmed={revealed ? c.id !== round.ownerId && myGuess !== c.id : (locked && myGuess !== c.id) || isOwner}
+              dimmed={revealed ? c.id !== round.ownerId && myGuess !== c.id : locked && myGuess !== c.id}
               state={revealed ? (c.id === round.ownerId ? 'owner' : myGuess === c.id ? 'wrong' : 'none') : 'none'}
               disabled={locked}
               guessers={guessers.map((p) => ({ name: p.name, color: p.color }))}
@@ -232,32 +218,30 @@ function RevealResult({ room }: { room: RoomState }) {
   const round = room.round!;
   const owner = round.choices.find((c) => c.id === round.ownerId);
   const mine = round.guesses?.[room.you.id];
-  const correctCount = Object.values(round.guesses ?? {}).filter((g) => g.correct).length;
-  const guessers = round.choices.length - 1;
+  const yours = room.you.ownsCurrentPhoto;
+  const whose = yours ? 'It was your own photo! 🙈' : `It was ${owner?.name ?? 'someone else'}'s`;
 
-  let gradient: readonly [string, string, ...string[]] = gradients.secondary;
+  let gradient: readonly [string, string, ...string[]];
   let title: string;
   let subtitle: string;
-  if (room.you.ownsCurrentPhoto) {
-    title = '📸 Your photo!';
-    subtitle = `${correctCount} of ${guessers} guessed it`;
-  } else if (mine?.correct) {
+  if (mine?.correct) {
     gradient = gradients.success;
     title = `✅ Correct! +${mine.points}`;
-    subtitle = `${(mine.ms / 1000).toFixed(1)}s — ${mine.points >= 450 ? 'lightning fast ⚡' : 'nice one'}`;
+    subtitle = yours
+      ? `You know your own camera roll · ${(mine.ms / 1000).toFixed(1)}s`
+      : `${(mine.ms / 1000).toFixed(1)}s — ${mine.points >= 450 ? 'lightning fast ⚡' : 'nice one'}`;
   } else if (mine) {
     gradient = gradients.danger;
     title = '❌ Nope!';
-    subtitle = `It was ${owner?.name ?? 'someone else'}'s`;
+    subtitle = whose;
   } else {
     gradient = gradients.primary;
     title = '⏰ Too slow!';
-    subtitle = `It was ${owner?.name ?? 'someone else'}'s`;
+    subtitle = whose;
   }
   const dark = gradient === gradients.primary;
 
   useEffect(() => {
-    if (room.you.ownsCurrentPhoto) return;
     haptic(mine?.correct ? 'success' : 'error');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

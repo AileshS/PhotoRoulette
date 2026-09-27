@@ -198,10 +198,9 @@ describe('full game', () => {
       const ownerName = body.slice(4).split('-')[0]; // our fake jpeg embeds the client tag
       const owner = byId.get([...byId.keys()].find((id) => id.startsWith(`${ownerName}-`))!)!;
 
+      // Owners guess like everyone else, so nobody is told whose photo it is yet.
       const ownerState = await waitFor(owner, (s) => s.round?.index === round);
-      assert.equal(ownerState.you.ownsCurrentPhoto, true);
-      const ownerTry = await owner.emitWithAck('round:answer', { round, guessId: owner.playerId, elapsedMs: 10 });
-      assert.equal(ownerTry.ok, false, "owners can't guess their own photo");
+      assert.equal(ownerState.you.ownsCurrentPhoto, false);
 
       const guessers = [a, b, c].filter((x) => x !== owner);
       // First guesser is right and fast, second is wrong.
@@ -211,16 +210,29 @@ describe('full game', () => {
       assert.ok(
         (await guessers[1].emitWithAck('round:answer', { round, guessId: guessers[0].playerId, elapsedMs: 0 })).ok,
       );
+      // The round is still waiting on the owner.
+      assert.equal((await waitFor(a, (s) => s.round!.answeredIds.length === 2)).phase, 'question');
+      assert.ok((await owner.emitWithAck('round:answer', { round, guessId: owner.playerId, elapsedMs: 200 })).ok);
 
       // Everyone answered, so the round ends early and reveals the owner.
       const reveal = await waitFor(a, (s) => s.phase === 'reveal' && s.round?.index === round);
       assert.equal(reveal.round!.ownerId, owner.playerId);
       const g0 = reveal.round!.guesses![guessers[0].playerId];
       const g1 = reveal.round!.guesses![guessers[1].playerId];
+      const gOwner = reveal.round!.guesses![owner.playerId];
       assert.equal(g0.correct, true);
       assert.ok(g0.points > 400 && g0.points <= 500, `fast correct answer scored ${g0.points}`);
       assert.deepEqual([g1.correct, g1.points], [false, 0]);
-      totals.set(guessers[0].playerId, (totals.get(guessers[0].playerId) ?? 0) + g0.points);
+      assert.equal(gOwner.correct, true, 'owners score for recognising their own photo');
+      assert.ok(gOwner.points > 0 && gOwner.points < g0.points);
+      const ownerReveal = await waitFor(owner, (s) => s.phase === 'reveal' && s.round?.index === round);
+      assert.equal(ownerReveal.you.ownsCurrentPhoto, true);
+      for (const [x, g] of [
+        [guessers[0], g0],
+        [owner, gOwner],
+      ] as const) {
+        totals.set(x.playerId, (totals.get(x.playerId) ?? 0) + g.points);
+      }
 
       if (round < 3) {
         const board = await waitFor(a, (s) => s.phase === 'leaderboard' && s.round?.index === round);
@@ -252,11 +264,12 @@ describe('full game', () => {
 
     const q = await waitFor(a, phase('question'));
     assert.equal(q.round!.total, 2, 'Ava covers the rounds Ben could not');
-    assert.equal(q.you.ownsCurrentPhoto, true);
+    assert.equal(q.you.ownsCurrentPhoto, false);
 
     // Nobody answers: the round closes on its own.
     const reveal = await waitFor(a, phase('reveal'));
     assert.deepEqual(reveal.round!.guesses, {});
+    assert.equal(reveal.you.ownsCurrentPhoto, true);
     const late = await b.emitWithAck('round:answer', { round: 0, guessId: a.playerId, elapsedMs: 0 });
     assert.equal(late.ok, false);
     a.emit('room:leave');

@@ -57,7 +57,7 @@ export interface RoomState {
   nextPhotoUrl: string | null;
   /** Server clock at the time this snapshot was sent. */
   serverNow: number;
-  /** Personalised per recipient. */
+  /** Personalised per recipient. `ownsCurrentPhoto` is only set once the round is revealed. */
   you: { id: string; isHost: boolean; ownsCurrentPhoto: boolean; guessId: string | null };
   /** Human-readable message for the whole room (e.g. why a game was cancelled). */
   notice: string | null;
