@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Photo Roulette",
+    "slug": "photo-roulette",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.photoroulette.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#3A0CA3",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.photoroulette.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Photo Roulette picks random photos from your camera roll to show your friends during a game.",
+          "savePhotosPermission": false,
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": [
+            "photo"
+          ]
+        }
+      ]
+    ],
+    "scheme": "photoroulette",
+    "backgroundColor": "#1A0B4A"
+  }
+}
